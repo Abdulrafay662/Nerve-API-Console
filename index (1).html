@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E2F55">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧠%3C/text%3E%3C/svg%3E">
+<title>Nerve API | Backend API Development</title>
+<meta name="description" content="A Users REST API with GET, POST, PUT and DELETE, input validation and clear status codes, plus a live 3D console.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3EEE2;--navy:#0E2F55;--navy2:#1d4a7e;--red:#B8352B;--green:#23764a;--amber:#a8590a;--ink:#26231f;--muted:#5b564d;--line:#d8cfb9;--fh:'Montserrat',system-ui,sans-serif;--fb:'Open Sans',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font:400 clamp(1rem,.95rem + .25vw,1.1rem)/1.65 var(--fb);background:var(--paper);color:var(--ink);overflow-x:hidden}
+h1,h2,h3{font-family:var(--fh);font-weight:800;line-height:1.1;letter-spacing:-.02em;color:var(--navy)}
+h1{font-size:clamp(2.2rem,1.3rem + 4.4vw,4.4rem)}h2{font-size:clamp(1.7rem,1.2rem + 2vw,2.6rem)}h3{font-size:1.15rem;font-weight:700}
+p{max-width:62ch;color:var(--muted)}
+:focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--navy);color:#fff;padding:.6rem 1rem;border-radius:8px;z-index:30}.skip:focus{left:8px}
+.wrap{width:min(1120px,100% - 2.5rem);margin-inline:auto}
+section{padding:clamp(3rem,6vw,6rem) 0;overflow:hidden}
+.intro{margin-bottom:1.8rem}.intro p{margin-top:.7rem}
+.dark{background:radial-gradient(circle at 20% 0,#1d4a7e,var(--navy) 65%)}.dark h2,.dark h3{color:#fff}.dark p{color:#d6e2f2}
+header{position:sticky;top:0;z-index:20;background:rgba(243,238,226,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:.6rem;min-height:60px}
+.logo{margin-right:auto;font:800 clamp(.95rem,4.2vw,1.15rem) var(--fh);text-decoration:none;color:var(--navy);display:flex;align-items:center;gap:.55rem}
+.logo i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--navy),var(--red));transform:rotate(45deg)}
+.mb,.pz{font:700 .9rem var(--fb);background:none;border:1px solid var(--navy);color:var(--navy);padding:.5rem .8rem;border-radius:999px;cursor:pointer}
+.pz[aria-pressed=true]{background:var(--navy);color:#fff}
+nav ul{list-style:none;padding:1rem 1.25rem;display:none;flex-direction:column;position:absolute;left:0;right:0;top:60px;background:var(--paper);border-bottom:1px solid var(--line)}
+nav ul.open{display:flex}
+nav a{display:block;padding:.6rem .3rem;text-decoration:none;font-weight:700;color:var(--navy)}
+.btn{display:inline-block;font:700 1rem var(--fb);background:var(--navy);color:#fff;border:2px solid var(--navy);padding:.8rem 1.5rem;border-radius:999px;text-decoration:none;cursor:pointer;box-shadow:0 14px 24px -12px var(--navy);transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}.btn.g{background:transparent;color:var(--navy);box-shadow:none}
+.row{display:flex;flex-wrap:wrap;gap:.8rem}
+#top{background:linear-gradient(rgba(14,47,85,.06) 1px,transparent 1px) 0 0/32px 32px,linear-gradient(90deg,rgba(14,47,85,.06) 1px,transparent 1px) 0 0/32px 32px}
+.hero{display:grid;gap:1.5rem;align-items:center;padding-block:clamp(1.5rem,4vw,3.5rem)}
+.hero p{margin:1.1rem 0 1.6rem;font-size:1.08em}
+.mode{margin-top:1.1rem;font-weight:700;color:var(--navy);font-size:.95rem}
+.pscene{perspective:1100px;height:clamp(250px,62vw,360px);display:grid;place-items:center}
+.ptilt{transform-style:preserve-3d;transform:rotateX(calc(var(--py,0)*-10deg)) rotateY(calc(var(--px,0)*14deg));transition:transform .15s}
+.pipe{position:relative;display:flex;gap:clamp(16px,5vw,54px);transform-style:preserve-3d;transform:rotateX(-18deg) rotateY(-26deg)}
+.node{display:flex;flex-direction:column;align-items:center;gap:30px;transform-style:preserve-3d}
+.lift{transform-style:preserve-3d;transition:transform .3s}
+.node.on .lift{transform:translateZ(36px) translateY(-8px)}
+.cb{--s:clamp(54px,12vw,84px);--h:calc(var(--s)/2);width:var(--s);height:var(--s);position:relative;transform-style:preserve-3d;animation:turn 6s ease-in-out infinite alternate}
+@keyframes turn{from{transform:rotateX(-10deg) rotateY(-28deg)}to{transform:rotateX(-10deg) rotateY(28deg)}}
+.cb b{position:absolute;inset:0;display:grid;place-items:center;border:2px solid rgba(255,255,255,.55);border-radius:8px;background:linear-gradient(145deg,var(--navy2),var(--navy));color:#fff;font:800 1.3rem var(--fh)}
+.cb b:nth-child(1){transform:translateZ(var(--h))}.cb b:nth-child(2){transform:rotateY(180deg) translateZ(var(--h))}
+.cb b:nth-child(3){transform:rotateY(90deg) translateZ(var(--h))}.cb b:nth-child(4){transform:rotateY(-90deg) translateZ(var(--h))}
+.cb b:nth-child(5){transform:rotateX(90deg) translateZ(var(--h))}.cb b:nth-child(6){transform:rotateX(-90deg) translateZ(var(--h))}
+.node.on .cb b{background:linear-gradient(145deg,#3aa374,var(--green))}.node.on.bad .cb b{background:linear-gradient(145deg,#d0594d,var(--red))}
+.cap{font:700 .75rem var(--fh);color:var(--navy);text-align:center}
+.packet{position:absolute;transform:translateZ(70px);transition:left .38s ease}
+.packet .cb{--s:26px;animation:none;transform:rotateX(-20deg) rotateY(35deg)}
+.packet .cb b{background:linear-gradient(145deg,#f1c35b,#c88a1c);border-width:1px}
+.packet.good .cb b{background:linear-gradient(145deg,#3aa374,var(--green))}.packet.bad .cb b{background:linear-gradient(145deg,#d0594d,var(--red))}
+.cons,.two{display:grid;gap:1.2rem}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:1.2rem;box-shadow:0 22px 40px -30px var(--navy)}
+.panel h3{margin-bottom:.3rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0 1rem}
+.chip{font:700 .82rem var(--fb);background:var(--paper);color:var(--navy);border:1px solid var(--line);border-radius:999px;padding:.4rem .8rem;cursor:pointer}
+.chip:hover{border-color:var(--navy)}
+.rq{display:grid;grid-template-columns:112px 1fr;gap:.6rem}
+select,input[type=text],textarea{font:400 1rem var(--fb);padding:.65rem .8rem;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);width:100%}
+textarea{min-height:150px;margin-top:.6rem;font:.9rem/1.5 var(--mono);resize:vertical}
+textarea:disabled{opacity:.55}
+label{font:700 .85rem var(--fh);color:var(--navy);display:block;margin-bottom:.25rem}
+.curl{display:block;margin-top:.8rem;padding:.6rem .8rem;border-radius:10px;background:var(--paper);font:.8rem/1.4 var(--mono);overflow-wrap:anywhere;color:var(--ink)}
+pre{background:var(--navy);color:#e8f0fa;border-radius:12px;padding:1rem;overflow:auto;font:.85rem/1.5 var(--mono)}
+#out{max-height:340px;min-height:150px}#hd{margin:.6rem 0;font-size:.8rem;padding:.6rem 1rem}
+.pill{display:inline-block;font:800 .95rem var(--fh);padding:.35rem .85rem;border-radius:999px;color:#fff;background:var(--muted)}
+.pill.ok{background:var(--green)}.pill.warn{background:var(--amber)}.pill.bad{background:var(--red)}
+.meta{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}.meta span{font-weight:700;color:var(--muted);font-size:.9rem}
+.tw{overflow-x:auto;position:relative}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:700 .85rem var(--fh);color:var(--navy)}
+td button{font:700 .8rem var(--fb);background:none;border:1px solid var(--red);color:var(--red);padding:.3rem .7rem;border-radius:999px;cursor:pointer}
+td button:hover{background:var(--red);color:#fff}
+.wall{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;perspective:900px;margin-top:1.2rem}
+.wall li{background:#fff;border:2px solid var(--line);border-radius:14px;padding:.8rem .4rem;text-align:center;transition:transform .3s,box-shadow .3s,border-color .3s}
+.wall b{display:block;font:800 1.6rem var(--fh);color:var(--navy)}.wall span{font-size:.8rem;color:var(--muted);font-weight:700}
+.wall li.hit{transform:translateZ(40px) rotateX(-8deg);border-color:var(--navy);box-shadow:0 26px 30px -16px var(--navy)}
+.eps{list-style:none;padding:0;display:grid;gap:.7rem}
+.ep{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem .8rem;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:.8rem 1rem}
+.ep p{grid-column:1/-1;font-size:.95rem}.ep code{font:700 .95rem var(--mono);color:var(--navy);overflow-wrap:anywhere}
+.mth{font:800 .78rem var(--fh);color:#fff;padding:.3rem .6rem;border-radius:8px;min-width:68px;text-align:center}
+.GET{background:var(--green)}.POST{background:var(--navy)}.PUT{background:var(--amber)}.DELETE{background:var(--red)}
+.ep button{font:700 .85rem var(--fb);background:var(--navy);color:#fff;border:0;border-radius:999px;padding:.4rem 1rem;cursor:pointer}
+.steps{list-style:none;padding:0;display:grid;gap:1.1rem;grid-template-columns:repeat(2,1fr)}
+.flip{width:100%;height:190px;perspective:900px;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.fi{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s}
+.flip[aria-pressed=true] .fi{transform:rotateY(180deg)}
+@media(hover:hover){.flip:hover .fi{transform:rotateY(180deg)}}
+.ff,.fb{position:absolute;inset:0;border-radius:18px;padding:1.1rem;backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;gap:.4rem}
+.ff{background:#fff;border:1px solid var(--line)}.ff b{font:800 2rem var(--fh);color:var(--navy)}.ff strong{font:700 1rem var(--fh);color:var(--muted)}
+.fb{background:linear-gradient(145deg,var(--red),#7d1f18);color:#fff;transform:rotateY(180deg);font-size:.95rem}.fb code{font:700 .85rem var(--mono)}
+.sl{display:grid;gap:2rem;align-items:center}
+.pl{perspective:1100px;height:clamp(300px,72vw,400px);display:grid;place-items:center}
+.xs{--gap:46px;width:min(280px,64vw);height:190px;position:relative;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(-32deg)}
+.xs div{position:absolute;inset:0;border-radius:14px;display:grid;place-items:center;font:800 .9rem var(--fh);color:#fff;border:2px solid rgba(255,255,255,.6);transition:transform .25s;box-shadow:0 12px 20px -10px #000}
+.xs .x0{background:var(--green);transform:translateZ(0)}.xs .x1{background:var(--amber);transform:translateZ(var(--gap))}
+.xs .x2{background:var(--navy2);transform:translateZ(calc(var(--gap)*2))}.xs .x3{background:var(--red);transform:translateZ(calc(var(--gap)*3))}
+input[type=range]{width:100%;accent-color:var(--red);height:30px}
+.rules{margin:1rem 0 0 1.2rem;color:var(--muted)}.rules li{margin:.2rem 0}
+.run pre{margin:1rem 0}
+footer{padding:2rem 0;background:#0a2240;color:#d6e2f2}footer p{color:#d6e2f2}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#top{position:relative}.hero{position:relative;z-index:1}
+.fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.fx span{position:absolute;left:var(--l);top:100%;font-size:var(--z);opacity:0;animation:rise var(--t) linear infinite;animation-delay:var(--d)}
+@keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.3}90%{opacity:.3}100%{transform:translateY(-110vh) rotate(25deg);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+@keyframes spinY{to{transform:rotateY(360deg)}}
+.pipe{margin-top:44px}
+.node{animation:bob 3.2s ease-in-out infinite}
+.node:nth-child(2){animation-delay:-.8s}.node:nth-child(3){animation-delay:-1.6s}.node:nth-child(4){animation-delay:-2.4s}
+.node .cb b{font-size:calc(var(--s)*.5);line-height:1}
+.packet .cb b{font-size:15px}
+.react{position:absolute;top:-34px;font-size:1.9rem;line-height:1;transform:translateZ(100px);pointer-events:none;animation:pop 1.3s ease-out forwards}
+@keyframes pop{0%{opacity:0;translate:0 14px;scale:.4}20%{opacity:1;scale:1.25}100%{opacity:0;translate:0 -46px;scale:1}}
+.hero .mode{font-size:.9rem;margin-top:.9rem}
+.stats{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.2rem}
+.stats li{background:#fff;border:1px solid var(--line);border-radius:999px;padding:.35rem .9rem;font-weight:700;font-size:.88rem;color:var(--navy)}
+.dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:var(--amber);margin-right:.5rem}
+.dot.on{background:var(--green);box-shadow:0 0 0 4px rgba(35,118,74,.2)}
+.flow{list-style:none;padding:0;display:grid;gap:1.2rem}
+.fstep{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:1.3rem;perspective:600px}
+.fstep .em{display:inline-block;font-size:2.6rem;line-height:1;margin-bottom:.5rem;animation:bob 3s ease-in-out infinite}
+.fstep:nth-child(2) .em{animation-delay:-.7s}.fstep:nth-child(3) .em{animation-delay:-1.4s}.fstep:nth-child(4) .em{animation-delay:-2.1s}
+.fstep:hover .em{animation:spinY .9s ease}
+.fstep p{font-size:.95rem;margin-top:.3rem}
+.foot{display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:center}
+.fl2{list-style:none;padding:0;display:flex;gap:1.2rem;flex-wrap:wrap}.fl2 a{color:#fff}
+@media(min-width:768px){.flow{grid-template-columns:repeat(4,1fr)}.fstep:not(:last-child)::after{content:"➜";position:absolute;right:-1.1rem;top:42%;color:var(--red);font-size:1.1rem;animation:nudge 1.6s ease-in-out infinite;z-index:1}}
+.cons>*,.two>*,.panel{min-width:0}
+.rq{grid-template-columns:112px minmax(0,1fr)}
+.still *,.still *::before,.still *::after{animation-play-state:paused!important}
+@media(min-width:768px){.cons,.two,.sl{grid-template-columns:1fr 1fr}.wall{grid-template-columns:repeat(5,1fr)}.steps{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1024px){
+.mb{display:none}nav ul{display:flex;flex-direction:row;position:static;padding:0;border:0;background:none;gap:1.5rem}
+.hero{grid-template-columns:1fr 1.05fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap bar">
+<a class="logo" href="#top"><i aria-hidden="true"></i>Nerve API</a>
+<nav aria-label="Main"><ul id="menu"><li><a href="#flow">Flow</a></li><li><a href="#console">Console</a></li><li><a href="#endpoints">Endpoints</a></li><li><a href="#methods">Methods</a></li><li><a href="#gate">Gatekeeper</a></li><li><a href="#run">Run it</a></li></ul></nav>
+<button class="pz" id="pz" aria-pressed="false" aria-label="Pause motion">Pause</button>
+<button class="mb" id="mb" aria-expanded="false" aria-controls="menu">Menu</button>
+</div></header>
+<main id="main">
+<section id="top"><div class="fx" aria-hidden="true"><span style="--l:52%;--z:1.8rem;--t:16s;--d:-3s">📨</span><span style="--l:60%;--z:1.4rem;--t:19s;--d:-9s">🔒</span><span style="--l:88%;--z:2rem;--t:22s;--d:-14s">📦</span><span style="--l:70%;--z:1.5rem;--t:17s;--d:-6s">✅</span><span style="--l:56%;--z:1.7rem;--t:20s;--d:-11s">⚡</span><span style="--l:78%;--z:1.4rem;--t:18s;--d:-2s">🧩</span><span style="--l:83%;--z:1.8rem;--t:23s;--d:-16s">🔑</span><span style="--l:94%;--z:1.5rem;--t:15s;--d:-8s">📡</span><span style="--l:50%;--z:1.3rem;--t:21s;--d:-5s">🛡️</span><span style="--l:74%;--z:1.6rem;--t:19s;--d:-13s">💾</span></div><div class="wrap hero">
+<div>
+<h1>A backend API you can watch work.</h1>
+<p>Send real GET, POST, PUT and DELETE requests, watch each one travel through validation and handling in 3D, and read the status code that comes back.</p>
+<div class="row"><a class="btn" href="#console">Open the console</a><a class="btn g" href="#endpoints">Read the endpoints</a></div>
+<ul class="stats"><li>7 endpoints</li><li>11 status codes handled</li><li>0 dependencies</li></ul>
+<p class="mode" id="mode" aria-live="polite">Looking for the API server...</p>
+</div>
+<div class="pscene" id="ps" role="img" aria-label="A 3D pipeline. A request packet travels from the client through the gatekeeper and the handler to the data store."><div class="ptilt" id="pt"><div class="pipe" id="pipe"></div></div></div>
+</div></section>
+
+<section id="flow" aria-labelledby="f-h" style="background:#fff"><div class="wrap">
+<div class="intro"><h2 id="f-h">The life of a request</h2><p>Every call follows the same four stops. Nothing skips the gatekeeper.</p></div>
+<ol class="flow">
+<li class="fstep"><span class="em" aria-hidden="true">💻</span><h3>Client sends</h3><p>The browser or an app sends a JSON request with a method and a path.</p></li>
+<li class="fstep"><span class="em" aria-hidden="true">🛡️</span><h3>Gatekeeper checks</h3><p>Content type, JSON format and every field are validated first.</p></li>
+<li class="fstep"><span class="em" aria-hidden="true">🧠</span><h3>Brain decides</h3><p>The handler finds the record, applies the rules and builds the answer.</p></li>
+<li class="fstep"><span class="em" aria-hidden="true">🗄️</span><h3>Store remembers</h3><p>Changes are saved, then the client gets a status code and JSON back.</p></li>
+</ol></div></section>
+
+<section id="console" aria-labelledby="c-h"><div class="wrap">
+<div class="intro"><h2 id="c-h">API console</h2><p>Pick an example or write your own request. The cube pipeline above lights up as the request is checked and handled.</p></div>
+<div class="cons">
+<div class="panel"><h3>Request</h3>
+<div class="chips" id="presets" role="group" aria-label="Example requests"></div>
+<div class="rq"><div><label for="method">Method</label><select id="method"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select></div><div><label for="path">Path</label><input type="text" id="path" value="/users" autocomplete="off" spellcheck="false"></div></div>
+<label for="body" style="margin-top:.8rem">JSON body</label>
+<textarea id="body" spellcheck="false" disabled></textarea>
+<div class="row" style="margin-top:.8rem"><button class="btn" id="send" type="button">Send request</button><button class="btn g" id="cp" type="button">Copy curl</button></div>
+<code class="curl" id="curl"></code>
+</div>
+<div class="panel"><h3>Response</h3>
+<div class="meta" aria-live="polite"><span class="pill" id="st">Waiting</span><span id="ms"></span></div>
+<pre id="hd">(no response yet)</pre>
+<pre id="out" tabindex="0" aria-label="Response body">Send a request to see the JSON response.</pre>
+</div>
+</div>
+<div class="panel" style="margin-top:1.2rem"><h3>Users in the store</h3><p style="margin-bottom:.8rem">This table is loaded with GET /users after every request.</p>
+<div class="tw"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Age</th><th>Role</th><th><span class="sr">Actions</span></th></tr></thead><tbody id="rows"></tbody></table></div></div>
+<ul class="wall" id="wall" aria-label="Status codes. The last response is raised."></ul>
+</div></section>
+
+<section id="endpoints" aria-labelledby="e-h" style="background:#fff"><div class="wrap">
+<div class="intro"><h2 id="e-h">Endpoints</h2><p>This list comes from GET /api, so the documentation is always the real API. Press Try to run an example.</p></div>
+<ul class="eps" id="eps"></ul>
+</div></section>
+
+<section id="methods" class="dark" aria-labelledby="m-h"><div class="wrap">
+<div class="intro"><h2 id="m-h">Anatomy of action</h2><p>Resources are nouns. Methods are verbs. Hover, tap or press Enter on a card to flip it.</p></div>
+<ul class="steps">
+<li><button class="flip" aria-pressed="false"><span class="fi"><span class="ff"><b>GET</b><strong>Retrieval</strong></span><span class="fb">Safe and idempotent. Reads data and never changes it.<code>GET /users</code></span></span></button></li>
+<li><button class="flip" aria-pressed="false"><span class="fi"><span class="ff"><b>POST</b><strong>Creation</strong></span><span class="fb">Unsafe and not idempotent. Each call can create a new record. Returns 201.<code>POST /users</code></span></span></button></li>
+<li><button class="flip" aria-pressed="false"><span class="fi"><span class="ff"><b>PUT</b><strong>Replacement</strong></span><span class="fb">Idempotent. Sending the same body twice leaves the same result.<code>PUT /users/1</code></span></span></button></li>
+<li><button class="flip" aria-pressed="false"><span class="fi"><span class="ff"><b>DELETE</b><strong>Removal</strong></span><span class="fb">Idempotent. Removes the record and returns 204 with no body.<code>DELETE /users/3</code></span></span></button></li>
+</ul></div></section>
+
+<section id="gate" aria-labelledby="g-h"><div class="wrap sl">
+<div><h2 id="g-h">The gatekeeper rule</h2><p style="margin-top:.8rem">Never trust the client. Every request passes four layers before it can change data. Drag the slider to pull them apart.</p>
+<label for="gap" style="margin-top:1.2rem">Explode the layers</label><input type="range" id="gap" min="0" max="80" value="46">
+<ul class="rules"><li>Content type must be JSON (415 if not).</li><li>Syntactic: name 2 to 60 characters, a valid email, age 13 to 120, role student, developer or admin (400 if not).</li><li>Semantic: the email must be unique (409 if taken).</li><li>Handler: unknown ids return 404, wrong methods return 405.</li></ul></div>
+<div class="pl" role="img" aria-label="Exploded 3D view of four layers: request, syntactic check, semantic check and handler"><div class="xs" id="xs"><div class="x0">handler</div><div class="x1">semantic check</div><div class="x2">syntactic check</div><div class="x3">request</div></div></div>
+</div></section>
+
+<section id="run" class="dark run" aria-labelledby="r-h"><div class="wrap">
+<h2 id="r-h">Run it on your computer</h2>
+<p style="margin-top:.8rem">The server needs only Node.js 18 or newer. There is nothing to install.</p>
+<pre>node server.js
+# open http://localhost:3000 for this console
+# the API and this page run from the same server</pre>
+<pre>curl http://localhost:3000/users
+curl -X POST http://localhost:3000/users -H "Content-Type: application/json" -d '{"name":"Ayesha Khan","email":"ayesha@example.com"}'</pre>
+<p>Data is kept in memory and saved to data.json, so it survives a restart. The server also answers 429 after 100 requests a minute from one address.</p>
+</div></section>
+</main>
+<footer><div class="wrap foot"><p>Nerve API, a backend study for DecodeLabs Project 2. Built with Node.js and no dependencies.</p><ul class="fl2"><li><a href="#console">Console</a></li><li><a href="#endpoints">Endpoints</a></li><li><a href="#gate">Gatekeeper</a></li><li><a href="#run">Run it</a></li></ul></div></footer>
+<script>
+
+var ROLES=['student','developer','admin'];
+var SEED=[{id:1,name:'Sara Ahmed',email:'sara@example.com',age:24,role:'admin',createdAt:'2026-10-01T09:00:00.000Z'},{id:2,name:'Omar Ali',email:'omar@example.com',age:21,role:'student',createdAt:'2026-10-02T10:30:00.000Z'},{id:3,name:'Lina Khan',email:'lina@example.com',age:27,role:'developer',createdAt:'2026-10-03T14:15:00.000Z'}];
+var DOCS=[
+{method:'GET',path:'/health',label:'/health',summary:'Check that the API is running.'},
+{method:'GET',path:'/api',label:'/api',summary:'List every endpoint. This is the live documentation.'},
+{method:'GET',path:'/users?role=admin',label:'/users',summary:'List users. Optional query: role, q, limit, offset.'},
+{method:'POST',path:'/users',label:'/users',summary:'Create a user. Body: name, email, age (optional), role (optional).'},
+{method:'GET',path:'/users/1',label:'/users/{id}',summary:'Get one user by id.'},
+{method:'PUT',path:'/users/1',label:'/users/{id}',summary:'Replace a user. Same body as POST.'},
+{method:'DELETE',path:'/users/3',label:'/users/{id}',summary:'Delete a user. Returns 204 with no body.'}];
+function validateUser(b,users,selfId){
+var errors=[],conflict=false,n,em;
+if(b===null||typeof b!=='object'||Array.isArray(b))return{errors:[{field:'body',message:'Send a JSON object.'}],conflict:false};
+n=typeof b.name==='string'?b.name.trim():'';
+if(!n)errors.push({field:'name',message:'Name is required.'});
+else if(n.length<2||n.length>60)errors.push({field:'name',message:'Name must be 2 to 60 characters.'});
+em=typeof b.email==='string'?b.email.trim().toLowerCase():'';
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))errors.push({field:'email',message:'Enter a valid email address.'});
+if(b.age!==undefined&&(!Number.isInteger(b.age)||b.age<13||b.age>120))errors.push({field:'age',message:'Age must be a whole number from 13 to 120.'});
+if(b.role!==undefined&&ROLES.indexOf(b.role)<0)errors.push({field:'role',message:'Role must be one of: '+ROLES.join(', ')+'.'});
+if(!errors.length)conflict=users.some(function(u){return u.email===em&&u.id!==selfId});
+return{errors:errors,conflict:conflict,clean:{name:n,email:em,age:b.age,role:b.role||'student'}};
+}
+function makeApi(users,onChange){
+var nextId=users.reduce(function(m,u){return Math.max(m,u.id)},0)+1;
+function err(s,c,m,d){return{status:s,body:{error:{status:s,code:c,message:m,details:d}}}}
+function no(allow){var r=err(405,'method_not_allowed','Allowed methods here: '+allow+'.');r.headers={Allow:allow};return r}
+function read(text,ct,self){
+if(!/application\/json/i.test(ct||''))return err(415,'unsupported_media_type','Send the header Content-Type: application/json.');
+var p;try{p=JSON.parse(text)}catch(e){return err(400,'invalid_json','The request body is not valid JSON.')}
+var r=validateUser(p,users,self);
+if(r.errors.length)return err(400,'validation_failed','Some fields need fixing.',r.errors);
+if(r.conflict)return err(409,'email_taken','A user with this email already exists.',[{field:'email',message:'Already registered.'}]);
+return{ok:true,clean:r.clean};
+}
+return function(method,path,query,text,ct){
+var m,id,i,r,u,lim,off,q,list;
+if(path==='/health')return method==='GET'?{status:200,body:{status:'ok',users:users.length}}:no('GET');
+if(path==='/api')return method==='GET'?{status:200,body:{name:'Users API',version:'1.0',endpoints:DOCS}}:no('GET');
+if(path==='/users'){
+if(method==='GET'){
+lim=query.limit===undefined?50:Number(query.limit);off=query.offset===undefined?0:Number(query.offset);
+if(!Number.isInteger(lim)||lim<1||lim>100)return err(400,'bad_query','limit must be a whole number from 1 to 100.');
+if(!Number.isInteger(off)||off<0)return err(400,'bad_query','offset must be a whole number of 0 or more.');
+if(query.role!==undefined&&ROLES.indexOf(query.role)<0)return err(400,'bad_query','role must be one of: '+ROLES.join(', ')+'.');
+q=(query.q||'').toLowerCase();
+list=users.filter(function(x){return(!query.role||x.role===query.role)&&(!q||x.name.toLowerCase().indexOf(q)>-1||x.email.indexOf(q)>-1)});
+return{status:200,body:{count:list.length,data:list.slice(off,off+lim)}};
+}
+if(method==='POST'){
+r=read(text,ct,null);if(!r.ok)return r;
+u=Object.assign({id:nextId++},r.clean,{createdAt:new Date().toISOString()});
+users.push(u);onChange();
+return{status:201,headers:{Location:'/users/'+u.id},body:u};
+}
+return no('GET, POST');
+}
+m=path.match(/^\/users\/([^\/]+)$/);
+if(m){
+if(['GET','PUT','DELETE'].indexOf(method)<0)return no('GET, PUT, DELETE');
+id=Number(m[1]);
+if(!Number.isInteger(id)||id<1)return err(400,'bad_id','User id must be a positive whole number.');
+i=users.findIndex(function(x){return x.id===id});
+if(i<0)return err(404,'not_found','No user with id '+id+'.');
+if(method==='GET')return{status:200,body:users[i]};
+if(method==='PUT'){r=read(text,ct,id);if(!r.ok)return r;users[i]=Object.assign({},users[i],r.clean,{updatedAt:new Date().toISOString()});onChange();return{status:200,body:users[i]}}
+users.splice(i,1);onChange();return{status:204};
+}
+return err(404,'route_not_found','No route for '+method+' '+path+'. See GET /api.');
+};
+}
+
+(function(){
+var $=function(s){return document.querySelector(s)},$$=function(s){return[].slice.call(document.querySelectorAll(s))};
+var rm=matchMedia('(prefers-reduced-motion:reduce)').matches,live=false,timers=[];
+var demo=makeApi(SEED.map(function(u){return Object.assign({},u)}),function(){});
+var TXT={200:'OK',201:'Created',204:'No Content',400:'Bad Request',404:'Not Found',405:'Method Not Allowed',409:'Conflict',413:'Payload Too Large',415:'Unsupported Media Type',429:'Too Many Requests',500:'Internal Error'};
+var mb=$('#mb'),menu=$('#menu');
+mb.onclick=function(){var o=menu.classList.toggle('open');mb.setAttribute('aria-expanded',String(o))};
+menu.onclick=function(e){if(e.target.tagName==='A'){menu.classList.remove('open');mb.setAttribute('aria-expanded','false')}};
+var pz=$('#pz');pz.onclick=function(){var s=pz.getAttribute('aria-pressed')!=='true';pz.setAttribute('aria-pressed',String(s));document.body.classList.toggle('still',s)};
+/* 3D pipeline */
+var pipe=$('#pipe'),names=['Client','Gatekeeper','Brain','Store'],nodes=[];
+function cubeHTML(){return '<div class="cb"><b></b><b></b><b></b><b></b><b></b><b></b></div>'}
+var EM=['💻','🛡️','🧠','🗄️'];
+names.forEach(function(n,i){var d=document.createElement('div');d.className='node';d.innerHTML='<div class="lift">'+cubeHTML()+'</div><span class="cap">'+n+'</span>';[].forEach.call(d.querySelectorAll('b'),function(b){b.textContent=EM[i]});pipe.appendChild(d);nodes.push(d)});
+var pk=document.createElement('div');pk.className='packet good';pk.innerHTML=cubeHTML();[].forEach.call(pk.querySelectorAll('b'),function(b){b.textContent='✉️'});pipe.appendChild(pk);
+function place(i){var n=nodes[i];pk.style.left=(n.offsetLeft+n.offsetWidth/2-13)+'px';pk.style.top='-44px'}
+place(0);addEventListener('resize',function(){place(0)});
+var ps=$('#ps'),pt=$('#pt');
+ps.addEventListener('pointermove',function(e){var r=ps.getBoundingClientRect();pt.style.setProperty('--px',((e.clientX-r.left)/r.width-.5).toFixed(3));pt.style.setProperty('--py',((e.clientY-r.top)/r.height-.5).toFixed(3))});
+ps.addEventListener('pointerleave',function(){pt.style.setProperty('--px',0);pt.style.setProperty('--py',0)});
+function react(n,e){var d=document.createElement('span');d.className='react';d.textContent=e;d.style.left=(nodes[n].offsetLeft+nodes[n].offsetWidth/2-16)+'px';d.addEventListener('animationend',function(){d.remove()});pipe.appendChild(d)}
+var lastUse=0,inView=true,demoCodes=[200,201,400,200,404,409],di=0;
+function fly(status,auto){
+if(rm)return;if(!auto)lastUse=Date.now();timers.forEach(clearTimeout);timers=[];
+var bad=status===0||status>=400,s,end;
+if([400,405,413,415].indexOf(status)>-1){s=[0,1,0];end=[1,'⛔']}else if(status===429){s=[0,1,0];end=[1,'⏱️']}else if(status===404){s=[0,1,2,1,0];end=[2,'🔎']}else if(status===409){s=[0,1,2,1,0];end=[2,'⚠️']}else if(status>=500||status===0){s=[0,1,2];end=[2,status?'🔥':'📡']}else{s=[0,1,2,3,2,1,0];end=[0,'✅']}
+var at=bad?s.indexOf(end[0]):s.length-1;
+pk.className='packet '+(bad?'bad':'good');
+s.forEach(function(n,i){timers.push(setTimeout(function(){place(n);nodes.forEach(function(x,j){x.classList.toggle('on',j===n);x.classList.toggle('bad',j===n&&bad&&n>0)});if(n===3&&!bad&&s[i-1]===2)react(3,'💾');if(i===at)react(end[0],end[1])},i*420))});
+timers.push(setTimeout(function(){nodes.forEach(function(x){x.classList.remove('on','bad')});place(0)},s.length*420+900));
+}
+if('IntersectionObserver' in window)new IntersectionObserver(function(e){inView=e[0].isIntersecting}).observe(ps);
+setInterval(function(){if(rm||!inView||document.body.classList.contains('still')||Date.now()-lastUse<9000)return;fly(demoCodes[di++%demoCodes.length],true)},4200);
+setTimeout(function(){fly(200,true)},900);
+/* status wall */
+var wall=$('#wall');
+[[200,'OK'],[201,'Created'],[204,'No Content'],[400,'Bad Request'],[404,'Not Found'],[405,'Wrong Method'],[409,'Conflict'],[415,'Bad Media Type'],[429,'Too Many'],[500,'Internal Error']].forEach(function(c){var li=document.createElement('li');li.dataset.c=c[0];li.innerHTML='<b>'+c[0]+'</b><span>'+c[1]+'</span>';wall.appendChild(li)});
+function hit(s){$$('#wall li').forEach(function(l){l.classList.toggle('hit',+l.dataset.c===s)})}
+/* requests */
+var ta=$('#body'),mth=$('#method'),pth=$('#path');
+function pretty(t){try{return JSON.stringify(JSON.parse(t),null,2)}catch(e){return t}}
+function request(method,path,text){
+var t0=performance.now();
+if(!live){
+var u=new URL(path,'http://x'),q={};u.searchParams.forEach(function(v,k){q[k]=v});
+var r=demo(method,u.pathname.length>1?u.pathname.replace(/\/+$/,''):u.pathname,q,text||'','application/json');
+return Promise.resolve({status:r.status,headers:r.headers||{},text:r.body===undefined?'':JSON.stringify(r.body,null,2),ms:Math.max(1,Math.round(performance.now()-t0))});
+}
+var o={method:method,headers:{}};if(method==='POST'||method==='PUT'){o.body=text;o.headers['Content-Type']='application/json'}
+return fetch(path,o).then(function(r){return r.text().then(function(t){var h={};r.headers.forEach(function(v,k){h[k]=v});return{status:r.status,headers:h,text:pretty(t),ms:Math.round(performance.now()-t0)}})},function(){return{status:0,headers:{},text:'Network error: the server did not answer.',ms:Math.round(performance.now()-t0)}});
+}
+function show(r){
+var st=$('#st');st.className='pill '+(r.status===0||r.status>=500?'bad':r.status>=400?'warn':'ok');
+st.textContent=r.status===0?'No response':r.status+' '+(TXT[r.status]||'');
+$('#ms').textContent=r.ms+' ms';
+var keep=['location','allow','x-response-time','retry-after'],hs=[];
+Object.keys(r.headers).forEach(function(k){if(keep.indexOf(k.toLowerCase())>-1)hs.push(k+': '+r.headers[k])});
+$('#hd').textContent=hs.join('\n')||'(no extra headers)';
+$('#out').textContent=r.text||'(empty body)';
+hit(r.status);fly(r.status);
+}
+function curl(){
+var base=live?location.origin:'http://localhost:3000',m=mth.value,s='curl';
+if(m!=='GET')s+=' -X '+m;
+s+=' '+base+(pth.value.trim()||'/');
+if(m==='POST'||m==='PUT'){var b=ta.value;try{b=JSON.stringify(JSON.parse(b))}catch(e){}s+=" -H \"Content-Type: application/json\" -d '"+b+"'"}
+$('#curl').textContent=s;
+}
+function syncBody(){ta.disabled=(mth.value==='GET'||mth.value==='DELETE');curl()}
+function refresh(){
+request('GET','/users','').then(function(r){
+var d;try{d=JSON.parse(r.text).data}catch(e){d=null}
+var tb=$('#rows');tb.textContent='';
+if(!d||!d.length){var tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent=d?'No users yet. Create one with POST /users.':'Could not load users.';tr.appendChild(td);tb.appendChild(tr);return}
+d.forEach(function(u){
+var tr=document.createElement('tr');
+[u.id,u.name,u.email,u.age===undefined?'-':u.age,u.role].forEach(function(v){var td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
+var td=document.createElement('td'),b=document.createElement('button');b.type='button';b.textContent='Delete';b.setAttribute('aria-label','Delete user '+u.name);
+b.onclick=function(){run('DELETE','/users/'+u.id,'')};td.appendChild(b);tr.appendChild(td);tb.appendChild(tr)});
+});
+}
+function run(m,p,b){mth.value=m;pth.value=p;ta.value=b||'';syncBody();request(m,p,b).then(function(r){show(r);refresh()})}
+$('#send').onclick=function(){run(mth.value,pth.value.trim()||'/',ta.value)};
+mth.onchange=syncBody;pth.oninput=curl;ta.oninput=curl;
+$('#cp').onclick=function(){var s=$('#curl').textContent,b=$('#cp');function done(t){b.textContent=t;setTimeout(function(){b.textContent='Copy curl'},1500)}
+if(navigator.clipboard)navigator.clipboard.writeText(s).then(function(){done('Copied')},function(){done('Select it above')});else done('Select it above')};
+var NEW='{\n  "name": "Ayesha Khan",\n  "email": "ayesha@example.com",\n  "age": 22,\n  "role": "developer"\n}';
+var PRE=[['List users','GET','/users',''],['Create user (201)','POST','/users',NEW],['Bad email (400)','POST','/users','{\n  "name": "Ali",\n  "email": "not-an-email"\n}'],['Duplicate email (409)','POST','/users','{\n  "name": "Sara Again",\n  "email": "sara@example.com"\n}'],['Not valid JSON (400)','POST','/users','{ name: Ali'],['Unknown id (404)','GET','/users/999',''],['Bad id (400)','GET','/users/abc',''],['Wrong method (405)','POST','/health',''],['Update user (200)','PUT','/users/1','{\n  "name": "Sara Ahmed",\n  "email": "sara@example.com",\n  "age": 25,\n  "role": "admin"\n}'],['Delete user (204)','DELETE','/users/2',''],['Filter by role','GET','/users?role=developer','']];
+PRE.forEach(function(p){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p[0];b.onclick=function(){run(p[1],p[2],p[3])};$('#presets').appendChild(b)});
+/* docs */
+function docs(){
+request('GET','/api','').then(function(r){
+var d;try{d=JSON.parse(r.text).endpoints}catch(e){d=DOCS}
+d.forEach(function(e){
+var li=document.createElement('li');li.className='ep';
+var m=document.createElement('span');m.className='mth '+e.method;m.textContent=e.method;
+var c=document.createElement('code');c.textContent=e.label;
+var b=document.createElement('button');b.type='button';b.textContent='Try';b.setAttribute('aria-label','Try '+e.method+' '+e.label);
+b.onclick=function(){run(e.method,e.path,(e.method==='POST'||e.method==='PUT')?NEW:'');$('#console').scrollIntoView({behavior:rm?'auto':'smooth'})};
+var p=document.createElement('p');p.textContent=e.summary;
+li.appendChild(m);li.appendChild(c);li.appendChild(b);li.appendChild(p);$('#eps').appendChild(li)});
+});
+}
+$$('.flip').forEach(function(b){b.onclick=function(){b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'))}});
+$('#gap').oninput=function(e){$('#xs').style.setProperty('--gap',e.target.value+'px')};
+/* start: look for the real server, else use demo mode */
+fetch('/health').then(function(r){return r.json()}).then(function(j){live=!!(j&&j.status==='ok')},function(){live=false}).then(function(){
+$('#mode').innerHTML='<span class="dot'+(live?' on':'')+'"></span>'+(live?'Connected to the live API server.':'Demo mode: no server found, so the same API code runs in your browser. Run node server.js for the real server.');
+syncBody();refresh();docs();
+});
+syncBody();
+})();
+</script>
+</body>
+</html>
